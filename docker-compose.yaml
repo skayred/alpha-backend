@@ -1,0 +1,36 @@
+version: '3.7'
+services:
+  db:
+    image: postgres:10.16
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./pg:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_PASSWORD=${DBPASSWORD}
+      - POSTGRES_DB=alpha
+      - POSTGRES_USER=alpha
+  alpha:
+    image: skayred/alpha-backend:0.0.1
+    depends_on:
+      db:
+        condition: service_healthy
+    build:
+      dockerfile: ./Dockerfile
+    ports:
+      - "4000:4000"
+    environment:
+      - DBHOST=db
+      - 'DBPORT=5432'
+      - DBUSER=alpha
+      - DB=alpha
+      - DBPASSWORD=${DBPASSWORD}
+  alpha-ui:
+    image: skayred/alpha-ui:0.0.1
+    ports:
+      - "3000:80" 
